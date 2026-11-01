@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reporte de Pago</title>
+  <style>
+    :root {
+      --primary: #0f172a;
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #cbd5e1;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .container {
+      background: var(--card);
+      width: 100%;
+      max-width: 440px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
+
+    .header {
+      background: var(--primary);
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .tasa-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.12);
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .tasa-badge span {
+      color: #34d399;
+      font-weight: 700;
+    }
+
+    form {
+      padding: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      color: var(--text);
+      background: #fff;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .doc-row {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 8px;
+    }
+
+    .conversion-box {
+      background: #f8fafc;
+      border: 1.5px dashed var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .conversion-item {
+      text-align: center;
+      flex: 1;
+    }
+
+    .conversion-item small {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .conversion-item strong {
+      font-size: 1.05rem;
+      color: var(--primary);
+    }
+
+    .divider {
+      width: 1px;
+      height: 30px;
+      background: var(--border);
+    }
+
+    button {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    button:hover {
+      background: var(--accent-hover);
+    }
+
+    button:active {
+      transform: scale(0.99);
+    }
+
+    button:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .status-msg {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 0.85rem;
+      display: none;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .status-error {
+      display: block;
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .status-success {
+      display: block;
+      background: #ecfdf5;
+      color: #059669;
+      border: 1px solid #a7f3d0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h1 id="nombreComercio">Reporte de Pago</h1>
+      <div class="tasa-badge">
+        Tasa BCV del día: <span id="tasaValor">Cargando...</span>
+      </div>
+    </div>
+
+    <form id="pagoForm">
+      <!-- Cédula o RIF -->
+      <div class="form-group">
+        <label>Documento de Identidad / RIF</label>
+        <div class="doc-row">
+          <select id="tipoDoc" required>
+            <option value="V">V-</option>
+            <option value="J">J-</option>
+            <option value="E">E-</option>
+            <option value="G">G-</option>
+          </select>
+          <input type="text" id="numDoc" placeholder="12345678" required inputmode="numeric" pattern="[0-9]{5,10}">
+        </div>
+      </div>
+
+      <!-- Nombre del Cliente -->
+      <div class="form-group">
+        <label>Nombre o Razón Social</label>
+        <input type="text" id="cliente" placeholder="Ej. Inversiones Los Andes / Juan Pérez" required>
+      </div>
+
+      <!-- Método de Pago y Moneda -->
+      <div class="row-2">
+        <div class="form-group">
+          <label>Método de Pago</label>
+          <select id="metodoPago" required>
+            <option value="Pago Móvil">Pago Móvil</option>
+            <option value="Transferencia Bs">Transferencia Bs</option>
+            <option value="Zelle">Zelle</option>
+            <option value="Binance Pay">Binance Pay</option>
+            <option value="Efectivo USD">Efectivo USD</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Moneda Pagada</label>
+          <select id="moneda" required>
+            <option value="VES">Bolívares (Bs)</option>
+            <option value="USD">Dólares ($)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Monto y Referencia -->
+      <div class="row-2">
+        <div class="form-group">
+          <label>Monto Pagado</label>
+          <input type="number" id="monto" placeholder="0.00" step="0.01" min="0.01" required>
+        </div>
+
+        <div class="form-group">
+          <label id="labelRef">Nro. Referencia</label>
+          <input type="text" id="referencia" placeholder="Últimos 6 dígitos" required>
+        </div>
+      </div>
+
+      <!-- Visor de Conversión Automática -->
+      <div class="conversion-box">
+        <div class="conversion-item">
+          <small>Equivalente en Dólares</small>
+          <strong id="visorUSD">$ 0.00</strong>
+        </div>
+        <div class="divider"></div>
+        <div class="conversion-item">
+          <small>Equivalente en Bolívares</small>
+          <strong id="visorVES">Bs. 0.00</strong>
+        </div>
+      </div>
+
+      <button type="submit" id="btnSubmit">Registrar y Enviar por WhatsApp</button>
+      <div id="statusMsg" class="status-msg"></div>
+    </form>
+  </div>
+
+  <script>
+    // =========================================================================
+    // CONFIGURACIÓN DEL CLIENTE (Cambiar solo estas 2 líneas por cada negocio)
+    // =========================================================================
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwD0maGXH_jJSbF65A1TFkgztUHeKjw4eyaW13QX_UL7aJ65NpXHmFU-JFDKRUGEheW/exec';
+    const WHATSAPP_DESTINO = '584142243738'; // Código de país (58) + número sin el cero inicial
+
+    // Estado local de la tasa (usa caché por si el internet móvil está lento)
+    let tasaBCV = parseFloat(localStorage.getItem('cache_tasa_bcv')) || 50.00;
+
+    const elTasa = document.getElementById('tasaValor');
+    const elComercio = document.getElementById('nombreComercio');
+    const elMetodo = document.getElementById('metodoPago');
+    const elMoneda = document.getElementById('moneda');
+    const elMonto = document.getElementById('monto');
+    const elReferencia = document.getElementById('referencia');
+    const elVisorUSD = document.getElementById('visorUSD');
+    const elVisorVES = document.getElementById('visorVES');
+    const elForm = document.getElementById('pagoForm');
+    const elBtn = document.getElementById('btnSubmit');
+    const elStatus = document.getElementById('statusMsg');
+
+    // 1. CARGAR TASA BCV DESDE GOOGLE SHEETS AL ABRIR LA PÁGINA
+    async function cargarConfiguracion() {
+      if (localStorage.getItem('cache_tasa_bcv')) {
+        elTasa.textContent = `Bs. ${tasaBCV.toFixed(2)}`;
+      }
+      try {
+        const res = await fetch(SCRIPT_URL);
+        const data = await res.json();
+        if (data.status === 'ok' && data.tasa_bcv) {
+          tasaBCV = parseFloat(data.tasa_bcv);
+          localStorage.setItem('cache_tasa_bcv', tasaBCV);
+          elTasa.textContent = `Bs. ${tasaBCV.toFixed(2)}`;
+          if (data.comercio) elComercio.textContent = data.comercio;
+          calcularConversion();
+        }
+      } catch (err) {
+        elTasa.textContent = `Bs. ${tasaBCV.toFixed(2)}`;
+        console.warn('Usando tasa en caché local:', err);
+      }
+    }
+
+    // 2. AJUSTE INTELIGENTE DE MONEDA SEGÚN MÉTODO DE PAGO
+    elMetodo.addEventListener('change', () => {
+      const metodo = elMetodo.value;
+      if (metodo === 'Pago Móvil' || metodo === 'Transferencia Bs') {
+        elMoneda.value = 'VES';
+        elReferencia.disabled = false;
+        elReferencia.value = '';
+        elReferencia.placeholder = 'Últimos 6 dígitos';
+      } else if (metodo === 'Efectivo USD') {
+        elMoneda.value = 'USD';
+        elReferencia.value = 'EFECTIVO';
+        elReferencia.disabled = true;
+      } else {
+        elMoneda.value = 'USD';
+        elReferencia.disabled = false;
+        elReferencia.value = '';
+        elReferencia.placeholder = 'Titular o ID de operación';
+      }
+      calcularConversion();
+    });
+
+    // 3. CÁLCULO EN VIVO (USD <-> VES)
+    function calcularConversion() {
+      const monto = parseFloat(elMonto.value) || 0;
+      const moneda = elMoneda.value;
+
+      let usd = 0;
+      let ves = 0;
+
+      if (moneda === 'VES') {
+        ves = monto;
+        usd = tasaBCV > 0 ? (monto / tasaBCV) : 0;
+      } else {
+        usd = monto;
+        ves = monto * tasaBCV;
+      }
+
+      elVisorUSD.textContent = `$ ${usd.toFixed(2)}`;
+      elVisorVES.textContent = `Bs. ${ves.toFixed(2)}`;
+    }
+
+    elMonto.addEventListener('input', calcularConversion);
+    elMoneda.addEventListener('change', calcularConversion);
+
+    // 4. ENVÍO A GOOGLE SHEETS Y REDIRECCIÓN A WHATSAPP
+    elForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      elStatus.className = 'status-msg';
+      elStatus.style.display = 'none';
+
+      const payload = {
+        cedula_rif: `${document.getElementById('tipoDoc').value}-${document.getElementById('numDoc').value.trim()}`,
+        cliente: document.getElementById('cliente').value.trim(),
+        metodo_pago: elMetodo.value,
+        moneda: elMoneda.value,
+        monto: parseFloat(elMonto.value),
+        referencia: elReferencia.value.trim()
+      };
+
+      elBtn.disabled = true;
+      elBtn.textContent = 'Procesando registro...';
+
+      try {
+        // Se usa text/plain para evitar errores de bloqueo CORS (preflight OPTIONS) con Google Apps Script
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+          elStatus.className = 'status-msg status-success';
+          elStatus.textContent = `¡Registrado con éxito! Código: ${result.id_transaccion}. Abriendo WhatsApp...`;
+
+          // Construir el mensaje estructurado para WhatsApp
+          const mensajeWA = [
+            `*COMPROBANTE DE PAGO REGISTRADO*`,
+            `--------------------------------`,
+            `*ID Operación:* ${result.id_transaccion}`,
+            `*Cliente:* ${payload.cliente}`,
+            `*Doc/RIF:* ${payload.cedula_rif}`,
+            `*Método:* ${payload.metodo_pago}`,
+            `*Referencia:* ${payload.referencia}`,
+            `*Monto Pagado:* ${payload.moneda === 'VES' ? 'Bs. ' : '$ '}${payload.monto.toFixed(2)}`,
+            `*Tasa BCV:* Bs. ${Number(result.tasa_aplicada).toFixed(2)}`,
+            `*Equivalente:* $ ${Number(result.equivalente_usd).toFixed(2)} / Bs. ${Number(result.equivalente_ves).toFixed(2)}`,
+            `--------------------------------`,
+            `_Enviado desde el portal de pagos_`
+          ].join('\n');
+
+          const urlWhatsApp = `https://wa.me/${WHATSAPP_DESTINO}?text=${encodeURIComponent(mensajeWA)}`;
+
+          setTimeout(() => {
+            window.location.href = urlWhatsApp;
+          }, 900);
+
+        } else {
+          throw new Error(result.mensaje || 'Error al guardar en la hoja de cálculo.');
+        }
+      } catch (error) {
+        elStatus.className = 'status-msg status-error';
+        elStatus.textContent = 'No se pudo conectar con el servidor. Verifica tu conexión e intenta de nuevo.';
+        elBtn.disabled = false;
+        elBtn.textContent = 'Registrar y Enviar por WhatsApp';
+      }
+    });
+
+    // Inicializar al abrir
+    cargarConfiguracion();
+  </script>
+</body>
+</html>
